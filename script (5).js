@@ -1,8 +1,7 @@
 /* =========================================================
-   PassForge — Password generation, strength, history, UI
+   PassForge — script.js
    ========================================================= */
 
-/* ---------- Character sets ---------- */
 const charSets = {
   uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   lowercase: 'abcdefghijklmnopqrstuvwxyz',
@@ -10,30 +9,27 @@ const charSets = {
   symbols:   '!@#$%^&*()_+-=[]{}|;:,.<>?'
 };
 
-/* ---------- DOM ---------- */
 const $ = (sel) => document.querySelector(sel);
 
-const passwordText   = $('#passwordText');
-const copyBtn        = $('#copyBtn');
-const regenBtn       = $('#regenBtn');
-const strengthBar    = $('#strengthBar');
-const strengthLabel  = $('#strengthLabel');
-const lengthSlider   = $('#lengthSlider');
-const lengthValue    = $('#lengthValue');
-const generateBtn    = $('#generateBtn');
-const optionInputs   = document.querySelectorAll('.option-toggle input[type="checkbox"]');
-const historyList    = $('#historyList');
-const historyEmpty   = $('#historyEmpty');
-const clearHistoryBtn= $('#clearHistoryBtn');
-const toastEl        = $('#toast');
+const passwordText    = $('#passwordText');
+const copyBtn         = $('#copyBtn');
+const regenBtn        = $('#regenBtn');
+const strengthBar     = $('#strengthBar');
+const strengthLabel   = $('#strengthLabel');
+const lengthSlider    = $('#lengthSlider');
+const lengthValue     = $('#lengthValue');
+const generateBtn     = $('#generateBtn');
+const optionInputs    = document.querySelectorAll('.option-toggle input[type="checkbox"]');
+const historyList     = $('#historyList');
+const historyEmpty    = $('#historyEmpty');
+const clearHistoryBtn = $('#clearHistoryBtn');
+const toastEl         = $('#toast');
 
-/* ---------- State ---------- */
-let history = []; // { value, time }  newest first, max 5
+let history = [];
 const MAX_HISTORY = 5;
 
-/* ---------- Secure Random Helpers ---------- */
+/* ---------- Secure Random ---------- */
 function secureRandomInt(maxExclusive) {
-  // Rejection-sampled crypto random int in [0, maxExclusive)
   const buf = new Uint32Array(1);
   const limit = Math.floor(0xFFFFFFFF / maxExclusive) * maxExclusive;
   let x;
@@ -49,7 +45,6 @@ function pickRandom(str) {
 }
 
 function shuffle(arr) {
-  // Fisher–Yates with crypto randomness
   for (let i = arr.length - 1; i > 0; i--) {
     const j = secureRandomInt(i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -57,7 +52,7 @@ function shuffle(arr) {
   return arr;
 }
 
-/* ---------- Password Generation ---------- */
+/* ---------- Generation ---------- */
 function getActiveSets() {
   const active = [];
   optionInputs.forEach((input) => {
@@ -69,17 +64,13 @@ function getActiveSets() {
 function generatePassword() {
   const length = Number(lengthSlider.value);
   const active = getActiveSets();
-  if (active.length === 0) return ''; // guarded elsewhere
+  if (active.length === 0) return '';
 
-  // Guarantee one char from each active set
   const required = active.map((k) => pickRandom(charSets[k]));
-
-  // Fill remaining from combined pool
   const pool = active.map((k) => charSets[k]).join('');
   const remaining = Math.max(0, length - required.length);
   const fill = Array.from({ length: remaining }, () => pickRandom(pool));
 
-  // Shuffle and join
   return shuffle([...required, ...fill]).join('').slice(0, length);
 }
 
@@ -88,18 +79,16 @@ function calculateStrength(pw) {
   if (!pw) return { level: 0, label: '—' };
 
   const len = pw.length;
-  const hasUpper  = /[A-Z]/.test(pw);
-  const hasLower  = /[a-z]/.test(pw);
-  const hasNum    = /[0-9]/.test(pw);
-  const hasSym    = /[^A-Za-z0-9]/.test(pw);
+  const hasUpper   = /[A-Z]/.test(pw);
+  const hasLower   = /[a-z]/.test(pw);
+  const hasNum     = /[0-9]/.test(pw);
+  const hasSym     = /[^A-Za-z0-9]/.test(pw);
   const typesCount = [hasUpper, hasLower, hasNum, hasSym].filter(Boolean).length;
 
   if (len < 8) return { level: 1, label: 'Weak' };
   if (len <= 11 && typesCount >= 2) return { level: 2, label: 'Fair' };
   if (len <= 15 && hasUpper && hasNum) return { level: 3, label: 'Good' };
   if (len >= 16 && typesCount === 4) return { level: 4, label: 'Strong' };
-
-  // Fallbacks
   if (len >= 12) return { level: 3, label: 'Good' };
   return { level: 2, label: 'Fair' };
 }
@@ -111,7 +100,7 @@ function updateStrengthUI(pw) {
   strengthLabel.textContent = label;
 }
 
-/* ---------- UI Updates ---------- */
+/* ---------- Scramble Reveal ---------- */
 const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
 let scrambleTimer = null;
 
@@ -123,10 +112,10 @@ function scrambleReveal(finalPw, duration = 400) {
   const len = finalPw.length;
   const start = performance.now();
   const tickMs = 35;
+
   scrambleTimer = setInterval(() => {
     const elapsed = performance.now() - start;
     const progress = Math.min(1, elapsed / duration);
-    // characters lock from left to right
     const lockedCount = Math.floor(progress * len);
     let out = '';
     for (let i = 0; i < len; i++) {
@@ -164,8 +153,9 @@ function updateSliderFill() {
   lengthValue.textContent = String(val);
 }
 
-/* ---------- Clipboard + Toast ---------- */
+/* ---------- Toast ---------- */
 let toastTimer;
+
 function showToast(msg) {
   toastEl.textContent = msg;
   toastEl.classList.add('show');
@@ -178,9 +168,10 @@ async function copyToClipboard(text, btn) {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
-    // Fallback
     const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
     try { document.execCommand('copy'); } catch {}
     document.body.removeChild(ta);
   }
@@ -211,6 +202,12 @@ function timeAgo(ts) {
   if (min < 60) return `${min} min ago`;
   const hr = Math.floor(min / 60);
   return `${hr}h ago`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
 }
 
 function renderHistory() {
@@ -244,21 +241,14 @@ function pushHistory(pw) {
   renderHistory();
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
-}
-
-/* ---------- Validation: at least one option ON ---------- */
+/* ---------- Validation ---------- */
 function enforceAtLeastOne(targetInput) {
   const active = getActiveSets();
   if (active.length === 0) {
-    // revert the toggle
     targetInput.checked = true;
     const label = targetInput.closest('.option-toggle');
     label.classList.remove('shake');
-    void label.offsetWidth; // restart animation
+    void label.offsetWidth;
     label.classList.add('shake');
     label.setAttribute('title', 'At least one type required');
     showToast('At least one type required');
@@ -267,7 +257,7 @@ function enforceAtLeastOne(targetInput) {
   return true;
 }
 
-/* ---------- Event Wiring ---------- */
+/* ---------- Events ---------- */
 function regenerate({ pushHist = true, animate = true } = {}) {
   const pw = generatePassword();
   if (!pw) return;
@@ -290,7 +280,6 @@ regenBtn.addEventListener('click', () => {
 
 lengthSlider.addEventListener('input', () => {
   updateSliderFill();
-  // Live re-evaluate strength of an updated password (also regenerate live)
   regenerate({ pushHist: false, animate: false });
 });
 
@@ -306,7 +295,6 @@ clearHistoryBtn.addEventListener('click', () => {
   renderHistory();
 });
 
-/* Refresh timestamps periodically */
 setInterval(() => {
   if (history.length > 0) renderHistory();
 }, 30000);
@@ -316,9 +304,9 @@ function init() {
   updateSliderFill();
   regenerate({ pushHist: false, animate: false });
   renderHistory();
-  // Initialize icons after first render
   window.addEventListener('load', () => {
     window.lucide && window.lucide.createIcons();
   });
 }
+
 init();
