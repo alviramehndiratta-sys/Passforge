@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="PassForge — Generate secure, cryptographically strong passwords instantly. A premium, frictionless password generator." />
+  <meta name="description" content="PassForge — Generate secure, cryptographically strong passwords instantly." />
   <title>PassForge — Secure Password Generator</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Lucide icons via CDN -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 </head>
 <body>
-  <!-- Ambient floating orbs -->
+
+  <!-- Ambient background orbs -->
   <div class="orbs" aria-hidden="true">
     <span class="orb orb-purple"></span>
     <span class="orb orb-cyan"></span>
@@ -19,13 +19,14 @@
   </div>
 
   <main class="page">
-    <!-- App Header -->
+
+    <!-- Header -->
     <header class="app-header">
       <h1 class="app-title">PassForge</h1>
       <p class="app-subtitle">Generate secure passwords instantly</p>
     </header>
 
-    <!-- ====== MAIN GENERATOR CARD ====== -->
+    <!-- Generator Card -->
     <section class="glass-card generator-card" aria-label="Password generator">
 
       <!-- Password Display -->
@@ -76,30 +77,22 @@
       <div class="options-grid">
         <label class="option-toggle">
           <input type="checkbox" data-opt="uppercase" checked />
-          <span class="pill">
-            <i data-lucide="check"></i>
-          </span>
+          <span class="pill"><i data-lucide="check"></i></span>
           <span class="opt-label">Uppercase <em>(A-Z)</em></span>
         </label>
         <label class="option-toggle">
           <input type="checkbox" data-opt="lowercase" checked />
-          <span class="pill">
-            <i data-lucide="check"></i>
-          </span>
+          <span class="pill"><i data-lucide="check"></i></span>
           <span class="opt-label">Lowercase <em>(a-z)</em></span>
         </label>
         <label class="option-toggle">
           <input type="checkbox" data-opt="numbers" checked />
-          <span class="pill">
-            <i data-lucide="check"></i>
-          </span>
+          <span class="pill"><i data-lucide="check"></i></span>
           <span class="opt-label">Numbers <em>(0-9)</em></span>
         </label>
         <label class="option-toggle">
           <input type="checkbox" data-opt="symbols" checked />
-          <span class="pill">
-            <i data-lucide="check"></i>
-          </span>
+          <span class="pill"><i data-lucide="check"></i></span>
           <span class="opt-label">Symbols <em>(!@#$)</em></span>
         </label>
       </div>
@@ -109,17 +102,16 @@
         <i data-lucide="lock-keyhole"></i>
         <span>Generate Password</span>
       </button>
+
     </section>
 
-    <!-- ====== HISTORY PANEL ====== -->
+    <!-- History Panel -->
     <section class="glass-card history-card" aria-label="Password history">
       <div class="history-header">
         <span class="history-title">Recent Passwords</span>
         <button id="clearHistoryBtn" class="ghost-btn">Clear All</button>
       </div>
-
       <ul id="historyList" class="history-list">
-        <!-- empty state -->
         <li class="history-empty" id="historyEmpty">
           <i data-lucide="lock"></i>
           <p>Your generated passwords will appear here</p>
@@ -128,11 +120,12 @@
     </section>
 
     <footer class="footer">
-      <p>Crafted with care · Cryptographically secure · No data leaves your browser</p>
+      <p>Cryptographically secure · No data leaves your browser</p>
     </footer>
+
   </main>
 
-  <!-- Toast -->
+  <!-- Toast notification -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="script.js" defer></script>
